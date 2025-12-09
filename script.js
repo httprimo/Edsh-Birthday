@@ -27,19 +27,7 @@ function createFloatingImage() {
     
     const img = document.createElement('img');
     const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
-    
-    // Ensure path starts with / for absolute path from root
-    // This works for both dev server and production (Vercel)
-    let imagePath = randomImage.startsWith('/') ? randomImage : '/' + randomImage;
-    
-    // URL encode the filename to handle special characters (spaces, parentheses, etc.)
-    // Split to preserve directory structure while encoding only the filename
-    const pathParts = imagePath.split('/');
-    if (pathParts.length > 0) {
-        const filename = pathParts[pathParts.length - 1];
-        const directory = pathParts.slice(0, -1).join('/');
-        imagePath = directory + '/' + encodeURIComponent(filename);
-    }
+    const imagePath = getImagePath(randomImage);
     
     img.src = imagePath;
     img.className = 'floating-image';
@@ -112,12 +100,19 @@ function createFloatingImage() {
     // Handle image load errors
     img.onerror = function() {
         console.warn('Failed to load image:', this.src);
-        this.remove();
+        // Try alternative path without encoding
+        const originalPath = randomImage;
+        if (this.src !== originalPath) {
+            this.src = originalPath;
+        } else {
+            this.remove();
+        }
     };
     
     // Handle successful image load
     img.onload = function() {
-        // Image loaded successfully
+        // Image loaded successfully - uncomment for debugging
+        // console.log('✓ Loaded:', this.src);
     };
     
     imageContainer.appendChild(img);
@@ -145,20 +140,101 @@ function initFloatingImages() {
     }, 3000);
 }
 
+// Get base URL - works in both dev and production
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
+// Helper function to get properly encoded image path
+function getImagePath(imageFile) {
+    // Remove leading slash if present, we'll add it with BASE_URL
+    let cleanPath = imageFile.startsWith('/') ? imageFile.slice(1) : imageFile;
+    
+    // Ensure BASE_URL ends with / and cleanPath doesn't start with /
+    const base = BASE_URL.endsWith('/') ? BASE_URL : BASE_URL + '/';
+    const path = cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath;
+    
+    // Check if filename has special characters that need encoding
+    const pathParts = path.split('/');
+    if (pathParts.length > 0) {
+        const filename = pathParts[pathParts.length - 1];
+        const directory = pathParts.slice(0, -1).join('/');
+        
+        // Only encode if filename has special characters (spaces, parentheses, etc.)
+        const needsEncoding = /[ ()]/.test(filename);
+        const finalFilename = needsEncoding ? encodeURIComponent(filename) : filename;
+        const fullPath = directory ? `${base}${directory}/${finalFilename}` : `${base}${finalFilename}`;
+        return fullPath;
+    }
+    return base + path;
+}
+
 // Start floating images when page loads
 window.addEventListener('load', () => {
     // Test if images are accessible
     const testImg = new Image();
+    const testPath = getImagePath(imageFiles[0]);
+    console.log('Environment:', {
+        BASE_URL: BASE_URL,
+        MODE: import.meta.env.MODE,
+        PROD: import.meta.env.PROD,
+        DEV: import.meta.env.DEV
+    });
+    console.log('Testing image path:', testPath);
+    console.log('Original path:', imageFiles[0]);
+    
     testImg.onload = () => {
-        console.log('Images are loading correctly');
+        console.log('✓ Images are loading correctly from:', testPath);
         initFloatingImages();
     };
     testImg.onerror = () => {
-        console.error('Images not found. Check if images folder is in public/ and paths are correct.');
-        // Try to initialize anyway
-        initFloatingImages();
+        console.error('✗ Failed to load test image:', testPath);
+        console.error('Trying alternative paths...');
+        
+        // Try 1: Direct path without encoding
+        const directPath = BASE_URL + (imageFiles[0].startsWith('/') ? imageFiles[0].slice(1) : imageFiles[0]);
+        console.log('Trying direct path (no encoding):', directPath);
+        testImg.src = directPath;
+        
+        testImg.onerror = () => {
+            // Try 2: Absolute path from root
+            const absolutePath = imageFiles[0];
+            console.log('Trying absolute path:', absolutePath);
+            testImg.src = absolutePath;
+            
+            testImg.onerror = () => {
+                // Try 3: Relative path
+                const relativePath = 'images/' + imageFiles[0].split('/').pop();
+                console.log('Trying relative path:', relativePath);
+                testImg.src = relativePath;
+                
+                testImg.onerror = () => {
+                    console.error('✗ All path attempts failed');
+                    console.error('Please check:');
+                    console.error('1. Images are in public/images/ folder');
+                    console.error('2. Images are committed to git');
+                    console.error('3. Vercel build includes the public folder');
+                    console.error('4. Check Network tab in DevTools to see what URLs are being requested');
+                    // Try to initialize anyway - maybe some images will work
+                    initFloatingImages();
+                };
+                
+                testImg.onload = () => {
+                    console.log('✓ Relative path worked!');
+                    initFloatingImages();
+                };
+            };
+            
+            testImg.onload = () => {
+                console.log('✓ Absolute path worked!');
+                initFloatingImages();
+            };
+        };
+        
+        testImg.onload = () => {
+            console.log('✓ Direct path worked!');
+            initFloatingImages();
+        };
     };
-    testImg.src = imageFiles[0];
+    testImg.src = testPath;
 });
 
 // Create floating hearts
