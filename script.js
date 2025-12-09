@@ -27,7 +27,21 @@ function createFloatingImage() {
     
     const img = document.createElement('img');
     const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
-    img.src = randomImage;
+    
+    // Ensure path starts with / for absolute path from root
+    // This works for both dev server and production (Vercel)
+    let imagePath = randomImage.startsWith('/') ? randomImage : '/' + randomImage;
+    
+    // URL encode the filename to handle special characters (spaces, parentheses, etc.)
+    // Split to preserve directory structure while encoding only the filename
+    const pathParts = imagePath.split('/');
+    if (pathParts.length > 0) {
+        const filename = pathParts[pathParts.length - 1];
+        const directory = pathParts.slice(0, -1).join('/');
+        imagePath = directory + '/' + encodeURIComponent(filename);
+    }
+    
+    img.src = imagePath;
     img.className = 'floating-image';
     img.alt = 'Memory';
     
@@ -97,7 +111,13 @@ function createFloatingImage() {
     
     // Handle image load errors
     img.onerror = function() {
+        console.warn('Failed to load image:', this.src);
         this.remove();
+    };
+    
+    // Handle successful image load
+    img.onload = function() {
+        // Image loaded successfully
     };
     
     imageContainer.appendChild(img);
@@ -127,7 +147,18 @@ function initFloatingImages() {
 
 // Start floating images when page loads
 window.addEventListener('load', () => {
-    initFloatingImages();
+    // Test if images are accessible
+    const testImg = new Image();
+    testImg.onload = () => {
+        console.log('Images are loading correctly');
+        initFloatingImages();
+    };
+    testImg.onerror = () => {
+        console.error('Images not found. Check if images folder is in public/ and paths are correct.');
+        // Try to initialize anyway
+        initFloatingImages();
+    };
+    testImg.src = imageFiles[0];
 });
 
 // Create floating hearts
