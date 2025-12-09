@@ -45,7 +45,14 @@ function createFloatingImage() {
     
     // Create custom animation with more roaming
     const animationName = `floatImage-${Math.random().toString(36).substr(2, 9)}`;
-    const styleSheet = document.styleSheets[0];
+    
+    // Get or create a style element for animations (avoids SecurityError with cross-origin stylesheets)
+    let animationStyleElement = document.getElementById('floating-image-animations');
+    if (!animationStyleElement) {
+        animationStyleElement = document.createElement('style');
+        animationStyleElement.id = 'floating-image-animations';
+        document.head.appendChild(animationStyleElement);
+    }
     
     // Create keyframes with random roaming pattern
     const keyframes = `
@@ -83,8 +90,8 @@ function createFloatingImage() {
         }
     `;
     
-    // Inject the keyframes
-    styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+    // Inject the keyframes safely
+    animationStyleElement.textContent += keyframes;
     
     // Apply the custom animation
     img.style.animationName = animationName;
@@ -111,11 +118,13 @@ function createFloatingImage() {
     
     // Handle successful image load
     img.onload = function() {
-        // Image loaded successfully - uncomment for debugging
-        // console.log('✓ Loaded:', this.src);
+        // Image loaded successfully
+        console.log('✓ Floating image loaded:', this.src);
     };
     
+    // Append image to container immediately (before load completes)
     imageContainer.appendChild(img);
+    console.log('Created floating image element with src:', imagePath);
     
     // Remove image after animation completes
     setTimeout(() => {
@@ -127,6 +136,14 @@ function createFloatingImage() {
 
 // Initialize floating images
 function initFloatingImages() {
+    console.log('Initializing floating images...');
+    const imageContainer = document.querySelector('.floating-images');
+    if (!imageContainer) {
+        console.error('Floating images container not found!');
+        return;
+    }
+    console.log('Floating images container found:', imageContainer);
+    
     // Create initial batch of images
     for (let i = 0; i < 8; i++) {
         setTimeout(() => {
@@ -138,6 +155,8 @@ function initFloatingImages() {
     setInterval(() => {
         createFloatingImage();
     }, 3000);
+    
+    console.log('Floating images initialization complete');
 }
 
 // Get base URL - works in both dev and production
