@@ -1,23 +1,23 @@
-// List of images in the images folder
+// List of images in the images folder (using absolute path for Vite/Vercel)
 const imageFiles = [
-    'images/IMG_1405.jpg',
-    'images/IMG_20230105_211559_759.jpg',
-    'images/IMG_20230115_151149_144.jpg',
-    'images/IMG_20230115_151458_659.jpg',
-    'images/IMG_20230115_151648_406.jpg',
-    'images/IMG_20230124_182102_860.jpg',
-    'images/IMG_20230128_172735_714.jpg',
-    'images/IMG_20230213_080721_085.jpg',
-    'images/IMG20221210202556 (1).jpg',
-    'images/IMG20221210202703.jpg',
-    'images/IMG20221210202953.jpg',
-    'images/IMG20230115140053.jpg',
-    'images/IMG20230123165816.jpg',
-    'images/IMG20230123165825.jpg',
-    'images/IMG20230123165841.jpg',
-    'images/IMG20230218134528.jpg',
-    'images/IMG20230218225333.jpg',
-    'images/IMG20230414200247.jpg'
+    '/images/IMG_1405.jpg',
+    '/images/IMG_20230105_211559_759.jpg',
+    '/images/IMG_20230115_151149_144.jpg',
+    '/images/IMG_20230115_151458_659.jpg',
+    '/images/IMG_20230115_151648_406.jpg',
+    '/images/IMG_20230124_182102_860.jpg',
+    '/images/IMG_20230128_172735_714.jpg',
+    '/images/IMG_20230213_080721_085.jpg',
+    '/images/IMG20221210202556 (1).jpg',
+    '/images/IMG20221210202703.jpg',
+    '/images/IMG20221210202953.jpg',
+    '/images/IMG20230115140053.jpg',
+    '/images/IMG20230123165816.jpg',
+    '/images/IMG20230123165825.jpg',
+    '/images/IMG20230123165841.jpg',
+    '/images/IMG20230218134528.jpg',
+    '/images/IMG20230218225333.jpg',
+    '/images/IMG20230414200247.jpg'
 ];
 
 // Create floating images
